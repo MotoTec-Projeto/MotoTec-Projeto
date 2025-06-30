@@ -1,0 +1,629 @@
+/* Container do mapa */
+#map {
+    height: 600px !important;
+    width: 100% !important;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background-color: #f8f9fa !important; /* Cor de fundo para quando o mapa não carregar */
+}
+
+/* Garante que o mapa ocupe todo o espaço disponível */
+#map.leaflet-container {
+    height: 100% !important;
+    min-height: 500px;
+}
+#mapaRotaContainer {
+  z-index: 9999 !important;
+}
+#mapaRotaContainer * {
+  z-index: auto;
+}
+
+/* Estilo do container do Leaflet */
+.leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 500px;
+    border-radius: 0.5rem;
+    background: #f8f9fa !important;
+}
+
+
+
+/* Garante que os controles fiquem dentro do container */
+.leaflet-top, 
+.leaflet-bottom,
+.leaflet-left,
+.leaflet-right {
+    z-index: 2;
+}
+/* Animações */
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 0 0 0 rgba(0,0,0,0.1); 
+  }
+  50% { 
+    transform: scale(1.03); 
+    box-shadow: 0 0 0 5px rgba(0,0,0,0.05); 
+  }
+}
+    
+    .leaflet-control-zoom {
+      border: none !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24) !important;
+    }
+    
+    .leaflet-bar a {
+      width: 30px !important;
+      height: 30px !important;
+      line-height: 30px !important;
+      border: none !important;
+      background: white !important;
+      color: #4B5563 !important;
+      transition: all 0.2s ease;
+    }
+    
+    .leaflet-bar a:hover {
+      background: #F3F4F6 !important;
+      color: #1F2937 !important;
+    }
+    
+    .leaflet-bar a.leaflet-disabled {
+      background: #F3F4F6 !important;
+      color: #9CA3AF !important;
+    }
+    
+    /* Estilos dos botões personalizados */
+    .custom-map-button {
+      background: white;
+      border: none;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+    #painelInstrucoes {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      width: 300px;                /* Tamanho reduzido */
+      height: 80vh;                /* Altura menor, 80% da tela */
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      z-index: 10000;
+      overflow: hidden;
+    }
+    
+    #painelInstrucoes {
+      font-size: 0.8rem;                /* Fonte menor */
+      line-height: 1.3;                 /* Melhor leitura */
+      padding: 0.5rem;
+    }
+    
+    #painelInstrucoes h3 {
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    
+    #listaInstrucoes > div {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    #listaInstrucoes > div:last-child {
+      border-bottom: none;
+    }
+    
+    #listaInstrucoes p {
+      margin: 0.15rem 0;
+      font-size: 0.75rem;              /* Ainda menor nas distâncias/tempos */
+      color: #4b5563;                  /* Cinza escuro */
+    }
+    
+    
+    #painelInstrucoes button {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    
+    #conteudoPainel {
+      overflow-y: auto;
+      padding: 1rem 1.25rem 1rem 1rem;
+      flex: 1;
+    }
+    
+    /* Scrollbar bonito */
+    #conteudoPainel::-webkit-scrollbar {
+      width: 6px;
+    }
+    #conteudoPainel::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    #conteudoPainel::-webkit-scrollbar-thumb {
+      background: #c4c4c4;
+      border-radius: 3px;
+    }
+    
+
+    #conteudoPainel::-webkit-scrollbar {
+      width: 6px;
+    }
+    #conteudoPainel::-webkit-scrollbar-thumb {
+      background-color: #cbd5e1;
+      border-radius: 3px;
+    }
+    
+    
+    .custom-map-button:hover {
+      background: #F3F4F6;
+      transform: translateY(-1px);
+    }
+    
+    .custom-map-button:active {
+      transform: translateY(0);
+    }
+    
+    /* Estilos do modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+    
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #6B7280;
+      transition: color 0.2s;
+    }
+    
+    .close-button:hover {
+      color: #111827;
+    }
+    
+    .restaurant-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .restaurant-item {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #F3F4F6;
+    }
+    
+    .restaurant-item:last-child {
+      border-bottom: none;
+    }
+    
+    .restaurant-name {
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+    
+    .restaurant-info {
+      display: flex;
+      gap: 0.5rem;
+      color: #6B7280;
+      font-size: 0.875rem;
+    }
+    
+    .restaurant-rating {
+      display: flex;
+      align-items: center;
+    }
+    
+    .restaurant-rating svg {
+      color: #F59E0B;
+      margin-right: 0.25rem;
+    }
+    
+    .restaurant-orders {
+      display: flex;
+      align-items: center;
+    }
+    
+    .restaurant-orders svg {
+      margin-right: 0.25rem;
+    }
+
+    .leaflet-marker-icon.leaflet-interactive:hover {
+        filter: drop-shadow(0 0 6px rgba(0,0,0,0.4)) !important;
+        transform: scale(1.1) !important;
+        z-index: 1000 !important;
+
+    /* Estilos para notificações */
+    .notification {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes slideIn {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .notification.hide {
+        animation: slideOut 0.3s ease-in forwards;
+    }
+
+    @keyframes slideOut {
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    .notification-message {
+        flex: 1;
+        margin-right: 1rem;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .notification-close {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0.25rem;
+        margin-left: 0.5rem;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+
+    .notification-close:hover {
+        opacity: 1;
+    }
+
+    .notification-button {
+        margin-left: 0.75rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 0.25rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .notification-button:hover {
+        transform: translateY(-1px);
+    }
+
+    .notification-button:active {
+        transform: translateY(0);
+    }
+
+    /* Cores para diferentes tipos de notificação */
+    .notification-error {
+        background-color: #EF4444;
+    }
+
+    .notification-warning {
+        background-color: #F59E0B;
+    }
+
+    .notification-success {
+        background-color: #10B981;
+    }
+
+    .notification-info {
+        background-color: #3B82F6;
+    }
+
+    /* Estilos para o ícone do motoboy */
+    .user-location-icon {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        transition: transform 0.3s ease;
+    }
+    
+    .user-location-icon:hover {
+        transform: scale(1.1);
+        filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+    }
+    
+    /* Ajuste para o popup do marcador */
+    .leaflet-popup-content-wrapper {
+        border-radius: 6px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Estilos para os marcadores de pedidos */
+    .custom-marker {
+        background: transparent !important;
+        border: none !important;
+    }
+    
+    .custom-marker div {
+        transition: all 0.3s ease;
+    }
+    
+    .custom-marker:hover div {
+        transform: scale(1.1);
+        box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    }
+    
+    /* Animações para os marcadores */
+    @keyframes pulse {
+        0% {
+            transform: scale(0.9);
+            opacity: 0.8;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        100% {
+            transform: scale(0.9);
+            opacity: 0.8;
+        }
+    }
+    
+    /* Melhorias na legenda do popup */
+    .leaflet-popup-content {
+        margin: 10px 12px;
+        line-height: 1.4;
+    }
+    
+    .leaflet-popup-content strong {
+        color: #1a202c;
+    }
+    
+    .leaflet-popup-content small {
+        color: #718096;
+        font-size: 0.85em;
+    }
+    fill-opacity: 0.9 !important;
+    stroke-opacity: 1 !important;
+  }
+
+  /* Estilos para o modal de detalhes */
+  #restauranteModal {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  #restauranteModal.hidden {
+    opacity: 0;
+    visibility: hidden;
+  }
+  
+  /* Estilo para a lista de restaurantes */
+  #listaRestaurantes {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+  }
+  
+  #listaRestaurantes::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  #listaRestaurantes::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+  }
+  
+  #listaRestaurantes::-webkit-scrollbar-thumb {
+    background-color: #cbd5e0;
+    border-radius: 3px;
+  }
+  /* faz com que o canvas do heatmap não capture pointer-events */
+.leaflet-heatmap-layer,
+.leaflet-heat-layer {
+  pointer-events: none !important;
+}
+
+  /* Estilo para os itens da lista de restaurantes */
+  #listaRestaurantes > div {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  #listaRestaurantes > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Estilo para o botão de rota */
+  #btnNavegacao {
+    transition: all 0.2s ease;
+  }
+  
+  #btnNavegacao:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+  }
+  
+  #btnNavegacao:active {
+    transform: translateY(0);
+  }
+  
+  /* Estilo para o botão de fechar */
+  #fecharModal, #fecharModalBtn {
+    transition: all 0.2s ease;
+  }
+  
+  #fecharModal:hover, #fecharModalBtn:hover {
+    background-color: #f3f4f6;
+  }
+  
+  /* Estilo para o indicador de carregamento */
+  #semRestaurantes svg {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Responsividade */
+  @media (max-width: 640px) {
+    #restauranteModal .max-w-md {
+      width: 95%;
+      margin: 1rem;
+    }
+    
+    #btnNavegacao, #fecharModalBtn {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+    }
+  }
+    
+      .custom-heat-marker {
+        transition: all 0.3s ease;
+      }
+      .custom-heat-marker .heat-pulse {
+        position: relative;
+        display: flex; align-items: center; justify-content: center;
+        width: var(--pulse-size); height: var(--pulse-size);
+        background: var(--pulse-color);
+        font-size: var(--pulse-font);
+        color: #fff; font-weight: bold; text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        border: 2px solid #fff; border-radius: 50%;
+        box-shadow: 0 0 10px currentColor;
+        animation: pulse 2s infinite;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .custom-heat-marker .heat-pulse:hover {
+        transform: scale(1.1);
+      }
+    
+      /* ====== Tooltips ====== */
+      .leaflet-tooltip,
+      .leaflet-tooltip.custom-tooltip,
+      .leaflet-tooltip.info-tooltip,
+      .leaflet-tooltip.interacao-tooltip {
+        position: absolute; pointer-events: none;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid #ddd; border-radius: 4px;
+        padding: 6px 10px; font-size: 13px;
+        font-weight: 500; color: #333;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        white-space: nowrap;
+      }
+      .leaflet-tooltip.interacao-tooltip { opacity: 0; transition: opacity 0.2s ease; }
+      .leaflet-tooltip.interacao-tooltip:before,
+      .leaflet-tooltip.custom-tooltip:before {
+        border-top-color: #fff; bottom: -7px;
+      }
+      .leaflet-tooltip-left:before,
+      .leaflet-tooltip-right:before,
+      .leaflet-tooltip-top:before,
+      .leaflet-tooltip-bottom:before {
+        border: none;
+      }
+    
+      /* ====== Botões flutuantes ====== */
+      .map-button,
+      .fixed.bottom-4.right-4 {
+        position: fixed; display: flex; flex-direction: column; gap: .5rem;
+        z-index: 9999; right: 1rem; bottom: 1rem;
+      }
+      .map-button button,
+      #focusPraiaGrande, #locateMe {
+        width: 3rem; height: 3rem; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+      }
+      .map-button button:hover,
+      #focusPraiaGrande:hover, #locateMe:hover {
+        transform: scale(1.1);
+      }
+    
+      /* ====== Cores personalizadas ====== */
+      .bg-mototec-blue { background-color: #2563eb; }
+      .bg-mototec-teal { background-color: #319795; }
+      .text-mototec-teal { color: #319795; }
+      .hover\:bg-mototec-blue:hover { background-color: #1d4ed8; }
+      .focus\:ring-mototec-teal:focus { outline: 2px solid #319795; }
+    
+      /* ====== Responsividade e acessibilidade ====== */
+      @media (hover: none) {
+        .heat-point-marker { stroke-width: 3px !important; }
+      }
+      [role="button"]:focus-visible,
+      button:focus-visible,
+      [tabindex="0"]:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px; border-radius: .25rem;
+      }

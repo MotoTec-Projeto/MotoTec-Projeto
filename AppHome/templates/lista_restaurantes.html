@@ -1,0 +1,365 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Top Restaurantes – MotoTec{% endblock %}
+
+{% block content %}
+<div class="max-w-md lg:max-w-4xl mx-auto mt-4 px-4">
+  <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-4">🍴 Top 3 Restaurantes</h2>
+  {% if restaurantes %}
+    <style>
+      .restaurante-card {
+        transition: background 0.18s, box-shadow 0.18s, transform 0.18s, color 0.18s;
+        background: #fff;
+      }
+      .restaurante-card[data-rank="1"]:hover, .restaurante-card[data-rank="1"]:focus-within {
+        background: #fde047;
+        color: #1e293b;
+        box-shadow: 0 4px 24px 0 #facc15cc, 0 1.5px 4px #facc1577;
+        transform: scale(1.04);
+      }
+      .restaurante-card[data-rank="1"]:hover .rest-nome,
+      .restaurante-card[data-rank="1"]:focus-within .rest-nome,
+      .restaurante-card[data-rank="1"]:hover .rest-bairro,
+      .restaurante-card[data-rank="1"]:focus-within .rest-bairro,
+      .restaurante-card[data-rank="1"]:hover .rest-pedidos,
+      .restaurante-card[data-rank="1"]:focus-within .rest-pedidos {
+        color: #1e293b !important;
+      }
+      .restaurante-card[data-rank="2"]:hover, .restaurante-card[data-rank="2"]:focus-within {
+        background: #22c55e;
+        color: #fff;
+        box-shadow: 0 4px 24px 0 #16a34acc, 0 1.5px 4px #16a34a77;
+        transform: scale(1.04);
+      }
+      .restaurante-card[data-rank="2"]:hover .rest-nome,
+      .restaurante-card[data-rank="2"]:focus-within .rest-nome,
+      .restaurante-card[data-rank="2"]:hover .rest-bairro,
+      .restaurante-card[data-rank="2"]:focus-within .rest-bairro,
+      .restaurante-card[data-rank="2"]:hover .rest-pedidos,
+      .restaurante-card[data-rank="2"]:focus-within .rest-pedidos {
+        color: #fff !important;
+      }
+      .restaurante-card[data-rank="3"]:hover, .restaurante-card[data-rank="3"]:focus-within {
+        background: #f97316;
+        color: #fff;
+        box-shadow: 0 4px 24px 0 #ea580ccc, 0 1.5px 4px #ea580c77;
+        transform: scale(1.04);
+      }
+      .restaurante-card[data-rank="3"]:hover .rest-nome,
+      .restaurante-card[data-rank="3"]:focus-within .rest-nome,
+      .restaurante-card[data-rank="3"]:hover .rest-bairro,
+      .restaurante-card[data-rank="3"]:focus-within .rest-bairro,
+      .restaurante-card[data-rank="3"]:hover .rest-pedidos,
+      .restaurante-card[data-rank="3"]:focus-within .rest-pedidos {
+        color: #fff !important;
+      }
+      .restaurante-card[data-rank="outro"]:hover, .restaurante-card[data-rank="outro"]:focus-within {
+        background: #64748b;
+        color: #fff;
+        box-shadow: 0 4px 24px 0 #334155cc, 0 1.5px 4px #33415577;
+        transform: scale(1.03);
+      }
+      .restaurante-card[data-rank="outro"]:hover .rest-nome,
+      .restaurante-card[data-rank="outro"]:focus-within .rest-nome,
+      .restaurante-card[data-rank="outro"]:hover .rest-bairro,
+      .restaurante-card[data-rank="outro"]:focus-within .rest-bairro,
+      .restaurante-card[data-rank="outro"]:hover .rest-pedidos,
+      .restaurante-card[data-rank="outro"]:focus-within .rest-pedidos {
+        color: #fff !important;
+      }
+      .rota-btn {
+        transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+      }
+      .restaurante-card[data-rank="1"]:hover .rota-btn, .restaurante-card[data-rank="1"]:focus-within .rota-btn {
+        background: #facc15;
+        color: #1e293b;
+        box-shadow: 0 2px 8px #facc1577;
+      }
+      .restaurante-card[data-rank="2"]:hover .rota-btn, .restaurante-card[data-rank="2"]:focus-within .rota-btn {
+        background: #16a34a;
+        color: #fff;
+        box-shadow: 0 2px 8px #16a34a77;
+      }
+      .restaurante-card[data-rank="3"]:hover .rota-btn, .restaurante-card[data-rank="3"]:focus-within .rota-btn {
+        background: #ea580c;
+        color: #fff;
+        box-shadow: 0 2px 8px #ea580c77;
+      }
+      .restaurante-card[data-rank="outro"]:hover .rota-btn, .restaurante-card[data-rank="outro"]:focus-within .rota-btn {
+        background: #334155;
+        color: #fff;
+        box-shadow: 0 2px 8px #33415577;
+      }
+    </style>
+    <div class="space-y-4">
+      {% for r in restaurantes %}
+        <div class="restaurante-card bg-white rounded-lg shadow-md p-4 flex justify-between items-center cursor-pointer border-2 transition transform"
+             data-lat="{{ r.latitude|stringformat:'.6f' }}"
+             data-lng="{{ r.longitude|stringformat:'.6f' }}"
+             data-nome="{{ r.nome }}"
+             data-rank="{% if forloop.first %}1{% elif forloop.counter == 2 %}2{% elif forloop.counter == 3 %}3{% else %}outro{% endif %}">
+          <div class="flex items-center gap-4">
+            <span class="text-3xl">
+              {% if forloop.first %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% endif %}
+            </span>
+            <div>
+              <h3 class="rest-nome text-lg font-semibold">{{ r.nome }}</h3>
+              <p class="rest-pedidos text-sm"><strong>{{ r.pedidos_hoje }}</strong> pedidos hoje</p>
+              <p class="rest-bairro text-sm">{{ r.bairro }}</p>
+            </div>
+          </div>
+          <button class="rota-btn font-bold px-4 py-2 rounded-lg text-sm transition-colors"
+                  data-lat="{{ r.latitude|stringformat:'.6f' }}"
+                  data-lng="{{ r.longitude|stringformat:'.6f' }}"
+                  data-nome="{{ r.nome }}"
+                  data-rank="{% if forloop.first %}1{% elif forloop.counter == 2 %}2{% elif forloop.counter == 3 %}3{% else %}outro{% endif %}">
+            Ver Rota
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      // Adiciona efeito de hover/touch nas boxes e muda cor do botão conforme ranking
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.restaurante-card').forEach(function(card) {
+          var rank = card.getAttribute('data-rank');
+          var btn = card.querySelector('.rota-btn');
+          if (btn && rank) btn.classList.add('btn-' + rank);
+          // Hover (mouse)
+          card.addEventListener('mouseenter', function() {
+            card.classList.add('hover-' + rank);
+            if (btn) btn.classList.add('btn-' + rank);
+          });
+          card.addEventListener('mouseleave', function() {
+            card.classList.remove('hover-' + rank);
+            if (btn) btn.classList.remove('btn-' + rank);
+          });
+          // Touch (mobile)
+          card.addEventListener('touchstart', function() {
+            card.classList.add('touch-' + rank);
+            if (btn) btn.classList.add('btn-' + rank);
+          });
+          card.addEventListener('touchend', function() {
+            card.classList.remove('touch-' + rank);
+            if (btn) btn.classList.remove('btn-' + rank);
+          });
+        });
+      });
+    </script>
+  {% else %}
+    <p class="text-center text-gray-500 mt-8">Nenhum restaurante encontrado.</p>
+  {% endif %}
+</div>
+
+<div id="mapaRotaContainer" class="hidden fixed inset-0 bg-white z-[20000] flex flex-col animate-fadein-modal" style="transition: opacity 0.3s, transform 0.3s;">
+<style>
+@keyframes fadein-modal {
+  from { opacity: 0; transform: translateY(40px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fadein-modal {
+  animation: fadein-modal 0.3s cubic-bezier(.4,1,.7,1);
+}
+#route-instructions {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb #e0e7ef;
+}
+#route-instructions::-webkit-scrollbar {
+  width: 7px;
+}
+#route-instructions::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 6px;
+}
+.instrucao-ativa {
+  background: #2563eb !important;
+  color: #fff !important;
+  border-left: 4px solid #1e40af;
+  box-shadow: 0 2px 10px #2563eb33;
+}
+</style>
+  <div class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-lg">
+    <h2 id="mapaHeader" class="text-lg font-semibold">Rota para o Restaurante</h2>
+    <button id="fecharMapaRota" class="text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-full p-1" aria-label="Fechar rota" title="Fechar rota">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  <div id="route-instructions" class="p-3 text-base border-b max-h-56 overflow-y-auto bg-gray-50 rounded-b-lg shadow-inner"></div>
+  <div id="mapaRota" class="flex-1 bg-gray-200"></div>
+  <div id="rotaStatus" class="bg-blue-100 text-blue-800 text-sm p-2 text-center hidden">Calculando rota...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const TOKEN = "4bd620f9-afa2-4d00-a032-644270420d1d";
+  let mapa = null;
+  let rotaLayer = null;
+  let marcadorInicio = null;
+  let marcadorFim = null;
+  let instrucoesElementos = [];
+
+  const container = document.getElementById('mapaRotaContainer');
+  const instructionsEl = document.getElementById('route-instructions');
+  const statusEl = document.getElementById('rotaStatus');
+  const headerEl = document.getElementById('mapaHeader');
+
+  function initMapa() {
+    if (!mapa) {
+      mapa = L.map('mapaRota').setView([-23.55, -46.63], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapa);
+    }
+    setTimeout(() => mapa.invalidateSize(), 100);
+  }
+
+  function limparRota() {
+    if (rotaLayer && mapa) {
+      mapa.removeLayer(rotaLayer);
+      rotaLayer = null;
+    }
+    if (marcadorInicio) {
+      mapa.removeLayer(marcadorInicio);
+      marcadorInicio = null;
+    }
+    if (marcadorFim) {
+      mapa.removeLayer(marcadorFim);
+      marcadorFim = null;
+    }
+    instructionsEl.innerHTML = '';
+    instrucoesElementos = [];
+    window.speechSynthesis.cancel();
+  }
+
+  async function tracarRota(destLat, destLng, nome) {
+    container.classList.remove('hidden');
+    statusEl.classList.remove('hidden');
+    headerEl.textContent = `Rota para ${nome}`;
+    initMapa();
+    limparRota();
+
+    try {
+      const pos = await new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 })
+      );
+
+      const origemLat = parseFloat(pos.coords.latitude);
+      const origemLng = parseFloat(pos.coords.longitude);
+      const destLatF = parseFloat(destLat);
+      const destLngF = parseFloat(destLng);
+
+      if (isNaN(origemLat) || isNaN(origemLng) || isNaN(destLatF) || isNaN(destLngF)) {
+        alert("Erro: coordenadas inválidas.");
+        statusEl.classList.add('hidden');
+        return;
+      }
+
+      const url = `https://graphhopper.com/api/1/route?key=${TOKEN}` +
+                  `&point=${origemLat},${origemLng}` +
+                  `&point=${destLatF},${destLngF}` +
+                  `&vehicle=car&locale=pt-BR&instructions=true&points_encoded=false`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.paths || !data.paths.length) throw new Error("Sem rotas retornadas.");
+
+      const rota = data.paths[0];
+      const coords = rota.points.coordinates.map(coord => [coord[1], coord[0]]);
+      rotaLayer = L.polyline(coords, { color: 'blue', weight: 5 }).addTo(mapa);
+      mapa.fitBounds(rotaLayer.getBounds());
+
+      const iconMotoboy = L.icon({
+        iconUrl: "{% static 'imagem/motoboy.png' %}",
+        iconSize: [36, 36],
+        iconAnchor: [18, 36]
+      });
+      marcadorInicio = L.marker([origemLat, origemLng], { icon: iconMotoboy }).addTo(mapa);
+
+      marcadorFim = L.marker([destLatF, destLngF], {
+        icon: L.divIcon({
+          className: 'text-3xl',
+          html: '🍽️',
+          iconSize: [30, 30]
+        })
+      }).addTo(mapa);
+
+      statusEl.classList.add('hidden');
+      instructionsEl.innerHTML = '';
+      instrucoesElementos = [];
+
+      const fila = [...rota.instructions];
+
+      fila.forEach((instr, index) => {
+        const texto = instr.text;
+        const el = document.createElement('div');
+        el.className = "flex items-start gap-3 p-3 border-b border-gray-200 bg-white text-gray-700 transition-all rounded-lg mb-2 shadow-sm";
+        el.innerHTML = `
+          <div class="text-xl select-none">${index === 0 ? '🚦' : (index === fila.length-1 ? '🏁' : '➡️')}</div>
+          <div class="flex flex-col">
+            <span class="font-semibold text-base leading-snug">${texto}</span>
+            <span class="text-xs text-blue-600 mt-1">${(instr.distance / 1000).toFixed(1)} km</span>
+          </div>
+        `;
+        instructionsEl.appendChild(el);
+        instrucoesElementos.push(el);
+      });
+
+      let indice = 0;
+
+      function falarProximaInstrucao() {
+        if (indice >= fila.length) return;
+
+        // limpar destaques anteriores
+        instrucoesElementos.forEach(el => el.classList.remove("instrucao-ativa"));
+        instrucoesElementos[indice].classList.add("instrucao-ativa");
+        // Scroll suave até instrução ativa
+        instrucoesElementos[indice].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        const texto = fila[indice].text;
+        const fala = new SpeechSynthesisUtterance(texto);
+        fala.lang = 'pt-BR';
+        fala.onend = () => {
+          indice++;
+          falarProximaInstrucao();
+        };
+        window.speechSynthesis.speak(fala);
+      }
+
+      window.speechSynthesis.cancel();
+      falarProximaInstrucao();
+
+    } catch (err) {
+      statusEl.classList.add('hidden');
+      alert("Erro ao traçar rota: " + err.message);
+      console.error(err);
+    }
+  }
+
+  document.querySelectorAll('.restaurante-card, .rota-btn').forEach(el =>
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      const lat = parseFloat(el.dataset.lat.replace(',', '.'));
+      const lng = parseFloat(el.dataset.lng.replace(',', '.'));
+      const nome = el.dataset.nome;
+      tracarRota(lat, lng, nome);
+    })
+  );
+
+  document.getElementById('fecharMapaRota').addEventListener('click', () => {
+    container.classList.add('hidden');
+    limparRota();
+  });
+});
+</script>
+{% endblock %}

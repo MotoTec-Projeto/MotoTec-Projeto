@@ -1,0 +1,30 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+  <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8 text-center">
+    <div class="flex justify-center mb-6">
+      <img src="{% static 'imagem/Logo.png' %}" alt="MotoTec" class="h-16">
+    </div>
+    
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Você saiu do sistema</h1>
+    
+    <p class="text-gray-600 mb-6">
+      Obrigado por utilizar o MotoTec. Para acessar novamente, faça login abaixo.
+    </p>
+    
+    <div class="flex flex-col space-y-3">
+      <a href="{% url 'login' %}?next={% url 'home' %}" 
+         class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-center">
+        Fazer Login
+      </a>
+      
+      <a href="{% url 'home' %}" 
+         class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-center">
+        Voltar para Home
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

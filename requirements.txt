@@ -1,0 +1,28 @@
+# Core
+Django>=4.2
+fastapi>=0.104.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-dotenv>=1.0.0
+# MongoDB
+pymongo>=4.5.0
+dnspython>=2.3.0
+motor>=3.3.1
+# Utilitários
+python-dateutil>=2.8.2
+pytz>=2023.3
+# Testes
+pytest>=7.4.0
+pytest-asyncio>=0.21.1
+httpx>=0.24.1
+# Desenvolvimento
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.1.0
+mypy>=1.5.1
+pre-commit>=3.3.3
+# Documentação
+mkdocs>=1.5.2
+mkdocs-material>=9.1.21

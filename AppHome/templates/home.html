@@ -1,0 +1,367 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mapa de Calor – MotoTec{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto mt-6 px-4">
+  <h2 class="text-2xl font-bold text-gray-800 mb-2">🔥 Mapa de Calor – Restaurantes em Destaque</h2>
+  <p class="text-gray-600 mb-4">Cada ponto representa um restaurante com intensidade de pedidos.</p>
+
+  <div class="w-full rounded-lg overflow-hidden border shadow" style="height: 600px;">
+    <div id="mapaCalor" style="height: 100%; width: 100%;"></div>
+  </div>
+
+  <!-- Botões flutuantes, totalmente inline -->
+  <style>
+    .botao-bounce {
+      animation: bounce-press 0.26s cubic-bezier(.32,1.56,.62,.99);
+    }
+    @keyframes bounce-press {
+      0% { transform: scale(0.93); }
+      60% { transform: scale(1.10); }
+      100% { transform: scale(1); }
+    }
+  </style>
+  <div style="position: absolute; bottom: 32px; right: 32px; display: flex; flex-direction: column; gap: 16px; z-index: 10001;">
+    <button id="btnMinhaLocalizacao"
+      style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:9999px;box-shadow:0 4px 24px rgba(0,0,0,0.18),0 1.5px 4px rgba(0,0,0,0.08);border:1.5px solid #d1d5db;outline:none;font-size:1.5rem;cursor:pointer;background:white;color:#2563eb;transition:box-shadow 0.22s cubic-bezier(.4,2,.6,1),transform 0.13s, border-color 0.18s;"
+      onmouseover="this.style.boxShadow='0 8px 32px 0 #60a5fa99,0 1.5px 4px #2563eb22';this.style.transform='translateY(-2px) scale(1.07)';this.style.borderColor='#2563eb'"
+      onmouseout="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.18),0 1.5px 4px rgba(0,0,0,0.08)';this.style.transform='scale(1)';this.style.borderColor='#d1d5db'">
+      <img src="{% static 'imagem/motoboy.png' %}" alt="Motoboy" style="width:2rem;height:2rem;filter:drop-shadow(0 0 2px #2563eb33);transition:filter 0.2s;">
+    </button>
+    <button id="btnPraiaGrande"
+      style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:9999px;box-shadow:0 4px 24px rgba(0,0,0,0.18),0 1.5px 4px rgba(0,0,0,0.08);border:1.5px solid #d1d5db;outline:none;font-size:1.5rem;cursor:pointer;background:white;color:#1e293b;transition:box-shadow 0.22s cubic-bezier(.4,2,.6,1),transform 0.13s, border-color 0.18s;"
+      onmouseover="this.style.boxShadow='0 8px 32px 0 #60a5fa99,0 1.5px 4px #2563eb22';this.style.transform='translateY(-2px) scale(1.07)';this.style.borderColor='#2563eb'"
+      onmouseout="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.18),0 1.5px 4px rgba(0,0,0,0.08)';this.style.transform='scale(1)';this.style.borderColor='#d1d5db'">
+      <img src="{% static 'imagem/mapa.png' %}" alt="Mapa" style="width:2rem;height:2rem;filter:drop-shadow(0 0 2px #2563eb33);transition:filter 0.2s;">
+    </button>
+  </div>
+  <script>
+    // Animação bounce ao pressionar os botões flutuantes
+    ["btnMinhaLocalizacao", "btnPraiaGrande"].forEach(function(btnId) {
+      var btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener('mousedown', function() {
+        btn.classList.remove('botao-bounce'); // reset se clicar rápido
+        void btn.offsetWidth; // reflow para reiniciar animação
+        btn.classList.add('botao-bounce');
+      });
+      btn.addEventListener('touchstart', function() {
+        btn.classList.remove('botao-bounce');
+        void btn.offsetWidth;
+        btn.classList.add('botao-bounce');
+      });
+      btn.addEventListener('animationend', function() {
+        btn.classList.remove('botao-bounce');
+      });
+    });
+  </script>
+</div>
+
+<!-- Modal flutuante de informações do restaurante -->
+<div id="modalInfo" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-[10000] hidden bg-white shadow-xl rounded-lg p-4 w-80 border">
+  <h3 id="modalNome" class="text-lg font-semibold text-blue-700 mb-1"></h3>
+  <p id="modalBairro" class="text-sm text-gray-600 mb-1"></p>
+  <p id="modalPedidos" class="text-sm text-gray-800 mb-2 font-medium"></p>
+  <div class="flex justify-end gap-2">
+    <button id="btnRota" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">ROTA</button>
+    <button onclick="document.getElementById('modalInfo').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">Fechar</button>
+  </div>
+</div>
+
+<!-- Container da tela cheia para o mapa de rota -->
+<div id="mapaRotaContainer" class="hidden fixed inset-0 bg-white z-[20000] flex flex-col animate-fadein-modal" style="transition: opacity 0.3s, transform 0.3s;">
+<style>
+@keyframes fadein-modal {
+  from { opacity: 0; transform: translateY(40px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-fadein-modal {
+  animation: fadein-modal 0.3s cubic-bezier(.4,1,.7,1);
+}
+#route-instructions {
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb #e0e7ef;
+}
+#route-instructions::-webkit-scrollbar {
+  width: 7px;
+}
+#route-instructions::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 6px;
+}
+.instrucao-ativa {
+  background: #2563eb !important;
+  color: #fff !important;
+  border-left: 4px solid #1e40af;
+  box-shadow: 0 2px 10px #2563eb33;
+}
+</style>
+  <div class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-lg">
+    <h2 id="mapaHeader" class="text-lg font-semibold">Rota para o Restaurante</h2>
+    <button id="fecharMapaRota" class="text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-full p-1" aria-label="Fechar rota" title="Fechar rota">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  <div id="route-instructions" class="p-3 text-base border-b max-h-56 overflow-y-auto bg-gray-50 rounded-b-lg shadow-inner"></div>
+  <div id="mapaRota" class="flex-1 bg-gray-200"></div>
+  <div id="rotaStatus" class="bg-blue-100 text-blue-800 text-sm p-2 text-center hidden">Calculando rota...</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  // =================================================================
+  // 1. CONSTANTES E VARIÁVEIS GLOBAIS
+  // =================================================================
+  const TOKEN = "4bd620f9-afa2-4d00-a032-644270420d1d";
+
+  // Variáveis dos mapas
+  let mapaCalor = null; // Mapa principal (heatmap)
+  let mapaRota = null;  // Mapa da tela de rota
+  let rotaDestino = {}; // Armazena dados do destino para traçar a rota
+
+  // Variáveis de estado para a rota
+  let rotaLayer = null;
+  let marcadorInicio = null;
+  let marcadorFim = null;
+  let instrucoesElementos = [];
+  let marcadorUsuario = null; // Marcador da localização do usuário no mapa principal
+
+  // Elementos do DOM
+  const modalInfo = document.getElementById('modalInfo');
+  const modalNome = document.getElementById('modalNome');
+  const modalBairro = document.getElementById('modalBairro');
+  const modalPedidos = document.getElementById('modalPedidos');
+  const btnRota = document.getElementById('btnRota');
+  
+  const mapaRotaContainer = document.getElementById('mapaRotaContainer');
+  const routeInstructionsEl = document.getElementById('route-instructions');
+  const rotaStatusEl = document.getElementById('rotaStatus');
+  const mapaHeaderEl = document.getElementById('mapaHeader');
+
+
+  // =================================================================
+  // 2. FUNÇÕES DE LÓGICA
+  // =================================================================
+
+  /**
+   * Inicializa o mapa de rota (mapaRota) se ele ainda não existir.
+   */
+  function initMapaRota() {
+    if (!mapaRota) {
+      mapaRota = L.map('mapaRota').setView([-23.55, -46.63], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(mapaRota);
+    }
+    // Garante que o mapa seja renderizado corretamente após o container se tornar visível
+    setTimeout(() => mapaRota.invalidateSize(), 100);
+  }
+
+  /**
+   * Limpa todos os elementos da rota anterior do mapa de rotas.
+   */
+  function limparRota() {
+    if (mapaRota) {
+        if (rotaLayer) mapaRota.removeLayer(rotaLayer);
+        if (marcadorInicio) mapaRota.removeLayer(marcadorInicio);
+        if (marcadorFim) mapaRota.removeLayer(marcadorFim);
+    }
+    rotaLayer = null;
+    marcadorInicio = null;
+    marcadorFim = null;
+    routeInstructionsEl.innerHTML = '';
+    instrucoesElementos = [];
+    window.speechSynthesis.cancel(); // Para a narração de voz
+  }
+
+  /**
+   * Traça uma rota da localização atual do usuário até um destino.
+   */
+  async function tracarRota(destLat, destLng, nome) {
+    mapaRotaContainer.classList.remove('hidden');
+    rotaStatusEl.classList.remove('hidden');
+    mapaHeaderEl.textContent = `Rota para ${nome}`;
+    
+    initMapaRota();
+    limparRota();
+
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+      );
+
+      const origemLat = parseFloat(pos.coords.latitude);
+      const origemLng = parseFloat(pos.coords.longitude);
+      const destLatF = parseFloat(destLat);
+      const destLngF = parseFloat(destLng);
+
+      if (isNaN(origemLat) || isNaN(origemLng) || isNaN(destLatF) || isNaN(destLngF)) {
+        throw new Error("Coordenadas de origem ou destino inválidas.");
+      }
+
+      const url = `https://graphhopper.com/api/1/route?key=${TOKEN}&point=${origemLat},${origemLng}&point=${destLatF},${destLngF}&vehicle=car&locale=pt-BR&instructions=true&points_encoded=false`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (!data.paths || !data.paths.length) throw new Error("Nenhuma rota encontrada pela API.");
+
+      const rota = data.paths[0];
+      const coords = rota.points.coordinates.map(coord => [coord[1], coord[0]]);
+      
+      rotaLayer = L.polyline(coords, { color: 'blue', weight: 5 }).addTo(mapaRota);
+      mapaRota.fitBounds(rotaLayer.getBounds());
+
+      const iconMotoboy = L.icon({ iconUrl: "{% static 'imagem/motoboy.png' %}", iconSize: [36, 36], iconAnchor: [18, 36] });
+      marcadorInicio = L.marker([origemLat, origemLng], { icon: iconMotoboy }).addTo(mapaRota);
+      marcadorFim = L.marker([destLatF, destLngF], { icon: L.divIcon({ className: 'text-3xl', html: '🍽️', iconSize: [30, 30] }) }).addTo(mapaRota);
+
+      rotaStatusEl.classList.add('hidden');
+      
+      // Processar e exibir instruções de voz e texto
+      const filaInstrucoes = [...rota.instructions];
+      filaInstrucoes.forEach((instr, index) => {
+        const el = document.createElement('div');
+        el.className = "flex items-start gap-3 p-3 border-b border-gray-200 bg-white text-gray-700 transition-all rounded-lg mb-2 shadow-sm";
+        el.innerHTML = `<div class=\"text-xl select-none\">${index === 0 ? '🚦' : (index === filaInstrucoes.length-1 ? '🏁' : '➡️')}</div><div class=\"flex flex-col\"><span class=\"font-semibold text-base leading-snug\">${instr.text}</span><span class=\"text-xs text-blue-600 mt-1\">${(instr.distance / 1000).toFixed(1)} km</span></div>`;
+        routeInstructionsEl.appendChild(el);
+        instrucoesElementos.push(el);
+      });
+
+      let indice = 0;
+      function falarProximaInstrucao() {
+        if (indice >= filaInstrucoes.length) return;
+        instrucoesElementos.forEach(el => el.classList.remove("instrucao-ativa"));
+        instrucoesElementos[indice].classList.add("instrucao-ativa");
+        // Scroll suave até instrução ativa
+        instrucoesElementos[indice].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        const fala = new SpeechSynthesisUtterance(filaInstrucoes[indice].text);
+        fala.lang = 'pt-BR';
+        fala.onend = () => {
+          indice++;
+          falarProximaInstrucao();
+        };
+        window.speechSynthesis.speak(fala);
+      }
+      
+      window.speechSynthesis.cancel();
+      falarProximaInstrucao();
+
+    } catch (err) {
+      rotaStatusEl.classList.add('hidden');
+      alert("Erro ao traçar rota: " + err.message);
+      console.error(err);
+    }
+  }
+
+  // =================================================================
+  // 3. INICIALIZAÇÃO DO MAPA PRINCIPAL E DADOS
+  // =================================================================
+  
+  mapaCalor = L.map("mapaCalor").setView([-24.005, -46.412], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: "© OpenStreetMap contributors"
+  }).addTo(mapaCalor);
+
+  fetch("/api/demanda/")
+    .then(res => res.json())
+    .then(res => {
+      if (!res.data) return;
+      res.data.forEach(rest => {
+        const { latitude, longitude, total_pedidos, nome, bairro } = rest;
+        const cor = total_pedidos > 120 ? "red" : total_pedidos > 60 ? "orange" : "blue";
+        const circle = L.circleMarker([latitude, longitude], { radius: 14, fillColor: cor, color: "#444", weight: 1, opacity: 1, fillOpacity: 0.8 }).addTo(mapaCalor);
+        
+        circle.on("click", () => {
+          modalNome.textContent = nome;
+          modalBairro.textContent = "Bairro: " + bairro;
+          modalPedidos.textContent = "Pedidos hoje: " + total_pedidos;
+          rotaDestino = { lat: latitude, lng: longitude, nome };
+          modalInfo.classList.remove("hidden");
+        });
+      });
+    })
+    .catch(err => console.error("Erro ao buscar dados da demanda:", err));
+
+
+  // =================================================================
+  // 4. OUVINTES DE EVENTOS (EVENT LISTENERS)
+  // =================================================================
+
+  // Botão "ROTA" dentro do modal de informações
+  btnRota.addEventListener('click', () => {
+    if (rotaDestino.lat && rotaDestino.lng) {
+      modalInfo.classList.add("hidden");
+      tracarRota(rotaDestino.lat, rotaDestino.lng, rotaDestino.nome);
+    }
+  });
+
+  // Botão para fechar o mapa de rotas
+  document.getElementById('fecharMapaRota').addEventListener('click', () => {
+    mapaRotaContainer.classList.add('hidden');
+    limparRota();
+  });
+
+  // Botão para centralizar em Praia Grande
+  document.getElementById("btnPraiaGrande").addEventListener('click', () => {
+    mapaCalor.setView([-24.005, -46.412], 13);
+  });
+
+  // Botão para ir para a localização do usuário
+  document.getElementById("btnMinhaLocalizacao").addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      return alert("Seu navegador não suporta geolocalização.");
+    }
+    
+    const statusEl = document.createElement("div");
+    statusEl.textContent = "Localizando...";
+    statusEl.className = "fixed top-4 right-4 bg-yellow-100 text-yellow-800 px-4 py-2 rounded shadow z-[9999]";
+    document.body.appendChild(statusEl);
+
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        document.body.removeChild(statusEl);
+        const { latitude, longitude } = pos.coords;
+
+        if (isNaN(latitude) || isNaN(longitude)) return alert("Coordenadas inválidas obtidas.");
+
+        mapaCalor.setView([latitude, longitude], 15);
+        
+        const iconMotoboy = L.icon({ iconUrl: "{% static 'imagem/motoboy.png' %}", iconSize: [36, 36], iconAnchor: [18, 36] });
+        
+        if (marcadorUsuario) mapaCalor.removeLayer(marcadorUsuario);
+
+        marcadorUsuario = L.marker([latitude, longitude], { icon: iconMotoboy })
+          .addTo(mapaCalor)
+          .bindPopup("Você está aqui!")
+          .openPopup();
+      },
+      err => {
+        document.body.removeChild(statusEl);
+        let msg = "Erro ao obter localização: ";
+        switch (err.code) {
+          case 1: msg += "Permissão negada."; break;
+          case 2: msg += "Localização indisponível."; break;
+          case 3: msg += "Tempo limite excedido."; break;
+          default: msg += "Erro desconhecido.";
+        }
+        alert(msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+
+});
+</script>
+{% endblock %}

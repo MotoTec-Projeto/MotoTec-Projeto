@@ -1,0 +1,214 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+<link rel="icon" href="{% static 'imagem/Logo.png' %}" type="image/png">
+{% endblock %}
+
+{% block title %}Tendência – MotoTec{% endblock title %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+  <!-- Título -->
+  <div class="flex flex-col items-center space-y-2">
+    <h1 class="text-xl sm:text-2xl font-bold text-center">🔮 Tendência da Semana</h1>
+
+    <!-- Botões de filtro alinhados e do mesmo tamanho -->
+    <div class="flex flex-wrap justify-center gap-4 mt-2">
+      <a href="?dia=hoje"
+         class="px-5 py-2 rounded-full text-white text-sm transition 
+                {% if dia == 'hoje' %}
+                  bg-green-600 
+                {% else %}
+                  bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 
+                {% endif %}">
+        Hoje
+      </a>
+      <a href="?dia=ontem"
+         class="px-5 py-2 rounded-full text-white text-sm transition 
+                {% if dia == 'ontem' %}
+                  bg-green-600 
+                {% else %}
+                  bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 
+                {% endif %}">
+        Ontem
+      </a>
+      <a href="?dia=tendencia"
+         class="px-5 py-2 rounded-full text-white text-sm transition shadow 
+                {% if dia == 'tendencia' %}
+                  bg-green-600 
+                {% else %}
+                  bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 
+                {% endif %}">
+        Tendência
+      </a>
+    </div>
+    
+    <!-- Ícone de ajuda posicionado abaixo dos botões -->
+    <div class="relative group mt-2">
+      <button class="text-gray-500 hover:text-gray-700 text-sm flex items-center">
+        <span class="h-6 w-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200">
+          ?
+        </span>
+        <span class="ml-1">Ajuda</span>
+      </button>
+      <div class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm text-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+        <p class="font-semibold mb-2">Como usar esta página:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Clique em "Hoje", "Ontem" ou "Tendência" para filtrar os dados.</li>
+          <li>Visualize pedidos por bairro e período (Manhã, Almoço, Tarde, Noite).</li>
+          <li>Ao passar o dedo ou mouse sobre cada linha, ela se destaca na cor do período correspondente.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container da tabela branco, com borda arredondada e sombra -->
+  <div class="bg-white rounded-lg shadow">
+
+    <!-- Cabeçalho (sticky para rolagem) -->
+    <div class="grid grid-cols-4 bg-gray-100 text-gray-700 font-semibold text-sm text-center px-4 py-2">
+      <div class="text-left">🏙️ Bairro</div>
+      <div>📅 Dia</div>
+      <div>🕑 Período</div>
+      <div>📈 Pedidos</div>
+    </div>
+
+    <!-- Linhas de dados -->
+    {% if modo == 'tendencia' %}
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-4 text-sm text-blue-600 border-b">
+          🔍 As tendências são calculadas comparando o histórico dos últimos 30 dias com padrões de pedidos anteriores.
+          Os bairros destacados têm maior probabilidade de demanda na próxima semana.
+        </div>
+        
+        {% for item in dados_tendencias %}
+          <div class="grid grid-cols-4 text-sm text-center px-4 py-3 border-t border-gray-200
+               transform transition duration-200 ease-out hover:scale-105 hover:shadow-lg
+               {% if item.faixa == 'Manhã' %}
+                 hover:bg-yellow-50 hover:text-yellow-700
+               {% elif item.faixa == 'Almoço' %}
+                 hover:bg-green-50 hover:text-green-700
+               {% elif item.faixa == 'Tarde' %}
+                 hover:bg-orange-50 hover:text-orange-700
+               {% else %}
+                 hover:bg-gray-800 hover:text-white
+               {% endif %}">
+            <div class="text-left">{{ item.bairro|default:"N/A" }}</div>
+            <div>{{ referencia }}</div>
+            <div>{{ item.faixa }}</div>
+            <div class="font-bold">{{ item.projecao|default:0 }}</div>
+          </div>
+        {% endfor %}
+        
+        {% if not dados_tendencias %}
+          <div class="p-6 text-center text-gray-500">Nenhuma informação disponível.</div>
+        {% endif %}
+      </div>
+    {% else %}
+      {% for item in semana %}
+        <div
+          class="grid grid-cols-4 text-sm text-center px-4 py-3 border-t border-gray-200
+                 transform transition duration-200 ease-out hover:scale-105 hover:shadow-lg
+                 {% if item.horario == 'Manhã' %}
+                   hover:bg-yellow-50 hover:text-yellow-700
+                 {% elif item.horario == 'Almoço' %}
+                   hover:bg-green-50 hover:text-green-700
+                 {% elif item.horario == 'Tarde' %}
+                   hover:bg-orange-50 hover:text-orange-700
+                 {% else %}
+                   hover:bg-gray-800 hover:text-white
+                 {% endif %}"
+        >
+          <div class="text-left">{{ item.bairro }}</div>
+          <div>{{ referencia }}</div>
+          <div>{{ item.horario }}</div>
+          <div class="font-bold">
+            {{ item.pedidos }}
+          </div>
+        </div>
+      {% empty %}
+        <div class="p-6 text-center text-gray-500">Nenhuma informação disponível para esta data.</div>
+      {% endfor %}
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const helpButton = document.querySelector('.group');
+    if (!helpButton) return; // Se não encontrar o botão, sai da função
+    
+    const tooltip = helpButton.querySelector('div');
+    let tooltipTimeout = null;
+    
+    // Função para fechar o tooltip
+    function closeTooltip() {
+        if (tooltip) {
+            tooltip.classList.add('invisible', 'opacity-0');
+            tooltip.classList.remove('opacity-100');
+        }
+        if (tooltipTimeout) {
+            clearTimeout(tooltipTimeout);
+            tooltipTimeout = null;
+        }
+    }
+    
+    // Função para abrir o tooltip
+    function openTooltip() {
+        closeTooltip(); // Fecha primeiro para reiniciar a animação
+        if (tooltip) {
+            tooltip.classList.remove('invisible', 'opacity-0');
+            tooltip.classList.add('opacity-100');
+            
+            // Fechar após 5 segundos
+            tooltipTimeout = setTimeout(closeTooltip, 5000);
+        }
+    }
+    
+    // Para dispositivos móveis
+    if ('ontouchstart' in window) {
+        // Fechar tooltip ao carregar a página
+        closeTooltip();
+        
+        // Ao clicar no botão de ajuda
+        helpButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isVisible = tooltip && !tooltip.classList.contains('invisible');
+            isVisible ? closeTooltip() : openTooltip();
+        });
+        
+        // Fechar tooltip ao tocar em qualquer lugar da tela ou no navbar
+        document.addEventListener('click', function(e) {
+            // Se o clique não foi no botão de ajuda nem no tooltip
+            if (!helpButton.contains(e.target) && (!tooltip || !tooltip.contains(e.target))) {
+                closeTooltip();
+            }
+        }, true); // Usando captura para pegar o evento antes de outros handlers
+        
+        // Fechar ao rolar a página
+        window.addEventListener('scroll', closeTooltip, { passive: true });
+        
+        // Observar mudanças no DOM para pegar o navbar que pode ser carregado dinamicamente
+        const observer = new MutationObserver(function(mutations) {
+            // Fechar tooltip quando o DOM mudar (útil para navbars que alteram o DOM)
+            closeTooltip();
+        });
+        
+        // Iniciar observação
+        observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+        });
+        
+        // Fechar tooltip quando a página perder o foco
+        window.addEventListener('blur', closeTooltip);
+    }
+});
+</script>
+{% endblock %}
