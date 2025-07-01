@@ -1,0 +1,15 @@
+[build]
+  publish = "static"
+  command = "echo 'No build command needed'"
+
+[build.environment]
+  PYTHON_VERSION = "3.11"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Django/FASTAPI deployment: customize as needed
+# If you want to use Netlify Functions for FastAPI, you will need to use a serverless adapter
+# For static-only deploy, this config is sufficient

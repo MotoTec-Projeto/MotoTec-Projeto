@@ -1,0 +1,19 @@
+# Ignorar arquivos e pastas desnecessários para o deploy Netlify
+node_modules/
+venv/
+__pycache__/
+db.sqlite3
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.log
+*.env
+*.DS_Store
+*.swp
+*.swo
+*.bak
+package-lock.json
+windsurf_deployment.yaml
+.git/
+.gitignore

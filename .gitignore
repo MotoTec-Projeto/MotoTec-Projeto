@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Ambiente virtual
+venv/
+
+# Ambiente
+.env
+.env.*
+
+# Banco de dados
+*.sqlite3
+db.sqlite3
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Django
+*.log
+staticfiles/
+media/
+
+# Testes
+.coverage
+htmlcov/
+
+# IDEs e editores
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Outros temporários
+*.swp
+*.swo
+*.bak
+Thumbs.db
+
+# Others
+*.bak
+*.tmp
+
+# MkDocs
+site/
+
+# Local Netlify folder
+.netlify
